@@ -165,6 +165,12 @@ cloudinary.config(
     api_secret=os.getenv('API_SECRET')
 )
 
+
+# stripe payment keys
+STRIPE_SECRET_KEY = 'your_secret_key'
+STRIPE_PUBLISHABLE_KEY = 'your_publishable_key'
+
+
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': [
 #         'rest_framework.authentication.SessionAuthentication',

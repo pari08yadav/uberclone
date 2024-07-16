@@ -22,4 +22,4 @@ class Ride(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f'Ride {self.id} - {self.status}'
+        return f'Ride {self.id} - {self.status}' 
