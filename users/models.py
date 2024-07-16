@@ -9,7 +9,7 @@ class Users(AbstractUser):
     
     USER_TYPE_CHOICES = (
         ('driver', 'Driver'),
-        ('passenger', 'Passenger')
+        ('rider', 'Rider')
     )
     
     email = models.EmailField(unique=True)
