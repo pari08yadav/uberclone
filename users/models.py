@@ -48,6 +48,10 @@ class DriverProfile(models.Model):
     vehicle_registration_number = models.CharField(max_length=20, default="")
     years_of_experience = models.IntegerField(null=True)
     profile_picture_url = models.URLField(blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.license_number}"
+    
+    

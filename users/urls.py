@@ -16,4 +16,5 @@ urlpatterns = [
     path('get_driver_profile/', views.get_driver_profile, name="get_driver_profile"),
     path('driver-profile/update/put/', views.update_driver_profile, name="update_driver_profile"),
     path('driver-profile/update/patch/', views.update_driver_profile_partially, name="update_driver_profile_partially"),
+    path('update_driver_location/', views.update_driver_location, name="update_driver_location")
 ]

@@ -188,7 +188,9 @@ def password_reset_confirm(request, token):
 @csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def create_driver_profile(request):
+    print("driver profile")
     if request.user.is_authenticated:
+        print("driver profile after")
         if request.method == "POST":
             data = request.data.copy()
             data['user'] = request.user.id
@@ -210,6 +212,7 @@ def create_driver_profile(request):
         
         return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    return Response({"error":"user is not authenticated"})
 
 
 # Get Driver Profile API
@@ -292,3 +295,33 @@ def update_driver_profile_partially(request):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
+
+# Update Driver Location API
+@api_view(['POST'])
+@csrf_exempt
+def update_driver_location(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            try:
+                
+                driver_profile = request.user.driver_profile
+                print(driver_profile)
+            except DriverProfile.DoesNotExist:
+                return Response({"error":"Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            latitude = request.data.get("latitude")
+            longitude = request.data.get("longitude")
+            
+            if latitude and longitude:
+                driver_profile.latitude = latitude
+                driver_profile.longitude = longitude
+                driver_profile.save()
+                
+                return Response({"message":"Location updated successfully."}, status=status.HTTP_200_OK)
+            
+            return Response({'error':"Invalid data. Latitude and longitude are required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"error":"method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    return Response({'error':"You are not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+    
