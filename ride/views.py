@@ -55,7 +55,7 @@ def udpate_ride(request, ride_id):
         serializer.save()
         return Response({"data":serializer.data})
     
-    return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -99,6 +99,7 @@ def request_ride(request):
     if request.method == "POST":
         data = request.data.copy()
         data['rider'] = request.user.id
+        print(request.user)
         serializer = RideSerializer(data=data)
         if serializer.is_valid():
             ride = serializer.save()

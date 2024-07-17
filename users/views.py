@@ -76,26 +76,26 @@ def logout_view(request):
 @api_view(['GET'])
 @csrf_exempt
 def user_list(request):
-    # if request.user.is_authenticated:
-    if request.method == 'GET':
-        users = Users.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response({"data": serializer.data})
+    if request.user.is_authenticated:
+        if request.method == 'GET':
+            users = Users.objects.all()
+            serializer = UserSerializer(users, many=True)
+            return Response({"data": serializer.data})
     
 
 @api_view(['GET'])
 @csrf_exempt
 def user_details(request, id):
-    # if request.user.is_authenticated:
-    try:
-        user = request.user
-        user = Users.objects.get(id=user.id)
-    except Users.DoesNotExist:
-        return Response(status=status.HTTP_200_OK)
-    
-    if request.method == "GET":
-        serializer = UserSerializer(user)
-        return Response({"data":serializer.data})
+    if request.user.is_authenticated:
+        try:
+            user = request.user
+            user = Users.objects.get(id=user.id)
+        except Users.DoesNotExist:
+            return Response(status=status.HTTP_200_OK)
+        
+        if request.method == "GET":
+            serializer = UserSerializer(user)
+            return Response({"data":serializer.data})
     
 
 # delete user api
@@ -103,15 +103,15 @@ def user_details(request, id):
 @csrf_exempt      
 def user_delete(request):
     # if request.user.is_authenticated:
-    try:
-        user = request.user
-        user = Users.objects.get(id=user.id)
-    except Users.DoesNotExist:
-        return Response(status=status.HTTP_200_OK)
-    
-    if request.method == "DELETE":
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            user = request.user
+            user = Users.objects.get(id=user.id)
+        except Users.DoesNotExist:
+            return Response(status=status.HTTP_200_OK)
+        
+        if request.method == "DELETE":
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
     
     
 @api_view(['POST'])
@@ -188,27 +188,27 @@ def password_reset_confirm(request, token):
 @csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def create_driver_profile(request):
-    # if request.user.is_authenticated:
-    if request.method == "POST":
-        data = request.data.copy()
-        data['user'] = request.user.id
-        print(data)
-        serializer = DriverProfileSerializer(data=data)
-        if serializer.is_valid(): 
-            driver_profile = serializer.save()
-            profile_picture = request.POST.get('profile_picture', None)
-            
-            if profile_picture:
-                upload_result = upload(profile_picture)
-                driver_profile.profile_picture_url = upload_result.get('url')
-                driver_profile.save()
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            data = request.data.copy()
+            data['user'] = request.user.id
+            print(data)
+            serializer = DriverProfileSerializer(data=data)
+            if serializer.is_valid(): 
+                driver_profile = serializer.save()
+                profile_picture = request.POST.get('profile_picture', None)
+                
+                if profile_picture:
+                    upload_result = upload(profile_picture)
+                    driver_profile.profile_picture_url = upload_result.get('url')
+                    driver_profile.save()
 
-            response_serializer = DriverProfileSerializer(profile_picture)
-            return Response({"data":response_serializer.data})
+                response_serializer = DriverProfileSerializer(profile_picture)
+                return Response({"data":response_serializer.data})
+            
+            return Response({"error from serializer is_valid":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({"error from serializer is_valid":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    
-    return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 
@@ -216,17 +216,17 @@ def create_driver_profile(request):
 @api_view(['GET'])
 @csrf_exempt
 def get_driver_profile(request):
-    # if request.user.is_authenticated:
-    if request.method == "GET":
-        try:
-            driver_profile = DriverProfile.objects.get(user=request.user)
-        except DriverProfile.DoesNotExist:
-            return Response({"error": "Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = DriverProfileSerializer(driver_profile)
-        return Response(serializer.data)
+    if request.user.is_authenticated:
+        if request.method == "GET":
+            try:
+                driver_profile = DriverProfile.objects.get(user=request.user)
+            except DriverProfile.DoesNotExist:
+                return Response({"error": "Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = DriverProfileSerializer(driver_profile)
+            return Response(serializer.data)
 
-    return Response({"error":"Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({"error":"Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 
@@ -235,31 +235,31 @@ def get_driver_profile(request):
 @csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def update_driver_profile(request):
-    # if request.user.is_authenticated:
-    try:
-        driver_profile = DriverProfile.objects.get(user=request.user)
-    except DriverProfile.DoesNotExist:
-        return Response({"error": "Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
-    
-    try:
-        data = request.data.copy()
-        data['user'] = request.user.id
-    except:
-        return Response({"message": "Data is not given."})
-    
-    serializer = DriverProfileSerializer(driver_profile, data=data)
-    if serializer.is_valid():
-        driver_profile = serializer.save()
+    if request.user.is_authenticated:
+        try:
+            driver_profile = DriverProfile.objects.get(user=request.user)
+        except DriverProfile.DoesNotExist:
+            return Response({"error": "Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        profile_picture = request.POST.get('profile_picture', None)
-        if profile_picture:
-            upload_result = upload(profile_picture)
-            driver_profile.profile_picture_url = upload_result.get('url')
-            driver_profile.save()
+        try:
+            data = request.data.copy()
+            data['user'] = request.user.id
+        except:
+            return Response({"message": "Data is not given."})
+        
+        serializer = DriverProfileSerializer(driver_profile, data=data)
+        if serializer.is_valid():
+            driver_profile = serializer.save()
             
-        return Response({"data",serializer.data}, status=status.HTTP_200_OK)
-    
-    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            profile_picture = request.POST.get('profile_picture', None)
+            if profile_picture:
+                upload_result = upload(profile_picture)
+                driver_profile.profile_picture_url = upload_result.get('url')
+                driver_profile.save()
+                
+            return Response({"data",serializer.data}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -268,27 +268,27 @@ def update_driver_profile(request):
 @csrf_exempt
 @parser_classes([MultiPartParser, FormParser])
 def update_driver_profile_partially(request):
-    # if request.user.is_authenticated:
-    try:
-        driver_profile = DriverProfile.objects.get(user=request.user)
-    except DriverProfile.DoesNotExist:
-        return Response({"error": "Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
-    
-    data = request.data.copy()
-    data['user'] = request.user.id
-    
-    serializer = DriverProfileSerializer(driver_profile, data=data, partial=True)
-    if serializer.is_valid():
-        driver_profile = serializer.save()
+    if request.user.is_authenticated:
+        try:
+            driver_profile = DriverProfile.objects.get(user=request.user)
+        except DriverProfile.DoesNotExist:
+            return Response({"error": "Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        profile_picture = request.POST.get('profile_picture', None)
-        if profile_picture:
-            upload_result = upload(profile_picture)
-            driver_profile.profile_picture_url = upload_result.get('url')
-            driver_profile.save()
+        data = request.data.copy()
+        data['user'] = request.user.id
+        
+        serializer = DriverProfileSerializer(driver_profile, data=data, partial=True)
+        if serializer.is_valid():
+            driver_profile = serializer.save()
             
-        return Response({"message":serializer.data}, status=status.HTTP_200_OK)
-    
-    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            profile_picture = request.POST.get('profile_picture', None)
+            if profile_picture:
+                upload_result = upload(profile_picture)
+                driver_profile.profile_picture_url = upload_result.get('url')
+                driver_profile.save()
+                
+            return Response({"message":serializer.data}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'users',
     'ride',
     'payment',
@@ -174,10 +176,16 @@ STRIPE_PUBLISHABLE_KEY = 'your_publishable_key'
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.SessionAuthentication',
+#         # 'rest_framework.authentication.SessionAuthentication',
 #         'rest_framework.authentication.TokenAuthentication',
 #     ],
 #     'DEFAULT_PERMISSION_CLASSES': [
 #         'rest_framework.permissions.IsAuthenticated',
 #     ],
 # }
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
+]
+

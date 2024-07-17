@@ -5,7 +5,7 @@ from .models import Ride
 
 @admin.register(Ride)
 class RideModelAdmin(admin.ModelAdmin):
-    list_display = ['rider', 'driver', 'pickup_location', 'drop_location', 'status', 'fare', 'created_at', 'updated_at']
+    list_display = ['id', 'rider', 'driver', 'pickup_location', 'drop_location', 'status', 'fare', 'created_at', 'updated_at']
     
 
     
