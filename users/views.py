@@ -303,9 +303,7 @@ def update_driver_location(request):
     if request.user.is_authenticated:
         if request.method == "POST":
             try:
-                
                 driver_profile = request.user.driver_profile
-                print(driver_profile)
             except DriverProfile.DoesNotExist:
                 return Response({"error":"Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
             
