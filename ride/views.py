@@ -2,11 +2,13 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializer import RideSerializer
+from .serializer import RideSerializer, DriverLocationSerializer
 from .models import Ride
 from users.models import DriverProfile
 from django.views.decorators.csrf import csrf_exempt
 from email_send import send_ride_email_request, send_ride_rejected_email, send_ride_accepted_email
+
+
 
 # Create Ride API
 @api_view(['POST'])
@@ -282,3 +284,66 @@ def rate_ride(request, ride_id):
     
 
 
+# Update Driver Location API
+@api_view(['POST'])
+@csrf_exempt
+def update_driver_location(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            try:
+                driver_profile = request.user.driver_profile
+                print(driver_profile)
+            except DriverProfile.DoesNotExist:
+                return Response({"error":"Driver profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            try:
+                data = request.data
+            except:
+                return Response({'error':'Data is required.'})    
+                
+            serializer = DriverLocationSerializer(data=data)
+            if serializer.is_valid():
+                driver_profile.latitude = serializer.validated_data['latitude']
+                driver_profile.longitude = serializer.validated_data['longitude']
+                driver_profile.save()
+                return Response({'data':serializer.data}, status=status.HTTP_200_OK)                    
+        
+        return Response({"error":"method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+    return Response({'error':"You are not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    
+
+@api_view(['PATCH'])
+@csrf_exempt
+def rate_ride(request, ride_id):
+    if request.user.is_authenticated:
+        try:
+            ride = Ride.objects.get(id=ride_id)
+        except Ride.DoesNotExist:
+            return Response({"error": "Ride not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user not in [ride.rider, ride.driver]:
+            return Response({"error": "You do not have permission to rate this ride."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            data = request.data
+        except:
+            return Response({"error":"Data is required."})
+        
+        if request.user == ride.rider:
+            if 'ride_rating' in data:
+                ride.rider_rating = data['rider_rating']
+            if 'rider_feedback' in data:
+                ride.rider_feedback = data['rider_feedback']
+        elif request.user == ride.driver:
+            if 'driver_rating' in data:
+                ride.driver_rating = data['driver_rating']
+            if 'driver_feedback' in data:
+                ride.driver_feedback = data['driver_feedback']
+                
+        ride.save()
+        serializer = RideSerializer(ride)
+        return Response({"data":serializer.data}, status=status.HTTP_200_OK)
+    
+    return Response({'error':'Unauthorized user'}, status=status.HTTP_401_UNAUTHORIZED)

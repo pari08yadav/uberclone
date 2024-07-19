@@ -15,5 +15,5 @@ urlpatterns = [
     path('accept_ride/<int:ride_id>/',views.accept_ride, name="accept_ride"),
     path('reject_ride/<int:ride_id>/', views.reject_ride, name="reject_ride"),
     path('rate_ride/<int:ride_id>/', views.rate_ride, name="rate_ride"),
-    
+    path('update_driver_location/', views.update_driver_location, name="update_driver_location")
 ]

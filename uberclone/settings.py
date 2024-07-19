@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'csp',
+    'channels',
     'users',
     'ride',
     'payment',
@@ -63,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = 'uberclone.urls'
@@ -83,7 +86,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'uberclone.wsgi.application'
+# WSGI_APPLICATION = 'uberclone.wsgi.application'
+ASGI_APPLICATION = 'uberclone.asgi.application'
 
 
 # Database
@@ -142,6 +146,18 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+
+
 AUTH_USER_MODEL = 'users.Users'
 
 
@@ -161,6 +177,7 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 # }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 cloudinary.config(
     cloud_name=os.getenv('CLOUD_NAME'),
@@ -189,3 +206,5 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
 ]
 
+# for allowig websocket request.
+CSP_CONNECT_SRC = ["'self'", "ws://localhost:8000"]
