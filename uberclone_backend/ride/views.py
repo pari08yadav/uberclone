@@ -2,6 +2,7 @@ from django.shortcuts import render
 import random, json
 import requests
 import os
+from distance_calculate import haversine_distance
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -206,7 +207,6 @@ def autocomplete_address(request):
     
     return JsonResponse(response.json())
 
-
     
 # Request Ride API
 @api_view(['POST'])
@@ -218,24 +218,50 @@ def request_ride(request):
             data = request.data
             data['rider'] = request.user.id
             
+            
             # Round latitude and longitude to 10 decimal places
-            data['pickup_latitude'] = round(float(data['pickup_latitude']), 10)
-            data['pickup_longitude'] = round(float(data['pickup_longitude']), 10)
-            data['drop_latitude'] = round(float(data['drop_latitude']), 10)
-            data['drop_longitude'] = round(float(data['drop_longitude']), 10)
+            try:
+                pickup_latitude = round(float(data['pickup_latitude']), 10)
+                pickup_longitude = round(float(data['pickup_longitude']), 10)
+                drop_latitude = round(float(data['drop_latitude']), 10)
+                drop_longitude = round(float(data['drop_longitude']), 10)
+            except (ValueError, KeyError):
+                return Response({'error': 'Invalid latitude or longitude'}, status=status.HTTP_400_BAD_REQUEST)
+        
             
             serializer = RideRequestSerializer(data=data)
             if serializer.is_valid(): 
-                available_drivers = DriverProfile.objects.all()
-                if not available_drivers.exists():
-                    return Response({"error": "No drivers available"}, status=status.HTTP_400_BAD_REQUEST)
+                available_drivers = DriverProfile.objects.filter(latitude__isnull=False, longitude__isnull=False)
+                print(available_drivers)
+                nearby_drivers = []
                 
-                # assigned_driver = available_drivers.first()
-                assigned_driver = random.choice(available_drivers)
+                for driver in available_drivers:
+                    try:
+                        driver_distance = haversine_distance(pickup_latitude, pickup_longitude, 
+                        float(driver.latitude), float(driver.longitude)
+                        )
+                        print("driver distance", driver_distance)
+                        if driver_distance <= 1.0:  # 1km radius
+                            print(driver_distance)
+                            nearby_drivers.append(driver)
+                            
+                    except Exception as e:
+                        print(f"Error calculating distance for driver {driver}: {e}")
+
+                print("Nearby drivers within 1km:",nearby_drivers)
+                    
+                    
+                if not nearby_drivers:
+                    print("No driver is available...")
+                    return Response({"message": "No drivers are available within 1km radius. Please try again later."},status=status.HTTP_200_OK)
                 
+                # Randomly assign a driver from the nearby drivers
+                assigned_driver = random.choice(nearby_drivers)
+                
+                # Save the ride with the assigned driver
                 ride = serializer.save(driver=assigned_driver.user)
                             
-                # send mail to driver for ride request
+                # Send email notification to the driver
                 send_ride_email_request(assigned_driver.user.email, ride)
                 
                 return Response({"data":serializer.data}, status=status.HTTP_201_CREATED)

@@ -128,7 +128,13 @@ const RideRequest = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setMessage("Ride requested successfully");
+            // Check for specific message from the server
+            if (response.data.message){
+                setMessage(response.data.message);
+            } else {
+                setMessage("Ride requested successfully");
+            }
+            
             console.log("Ride requested successfully:", response.data);
         } catch (error) {
             setMessage("Error requesting ride. Please try again.");
